@@ -1,0 +1,90 @@
+<html>
+    <head>
+        <script src='../socket.io.js'></script>
+        <script src="../jquery.min.js"></script>
+        <script type="text/javascript" src="../smoothie.js"></script>
+        <link rel="stylesheet" href="../bootstrap/dist/css/bootstrap.min.css">
+        <script src="../bootstrap/dist/js/bootstrap.min.js"></script>
+        
+        
+        <script>
+            var lines = [];
+            var debug = false;
+            var sensorMapping = [];
+            sensorMapping["28-0000072e90ed"] = "Demosensor";
+            var socket = io();
+            socket.on('welcome', function(data) {
+                //addMessage(data.message);
+
+                // Respond with a message including this clients' id sent from the server
+                socket.emit('i am client', {data: 'foo!', id: data.id});
+            });
+            socket.on('temp', function(data) {
+                addMessage(data);
+            });
+            socket.on('error', console.error.bind(console));
+            socket.on('message', console.log.bind(console));
+
+            function addMessage(message) {
+                if(!!document.getElementById(message.id)) {
+                    document.getElementById(message.id).innerText = Math.round(message.temp * 10)/10;
+                    lines[message.id].append(new Date().getTime(), message.temp);
+                } else {
+                   var color = 'rgb(' + random(256,0) + ', ' + random(256,0) + ', ' + random(256,0) + ')';
+                
+                   var template = '<div class="col-xs-6 col-sm-3 placeholder">' +
+                            '<div style="background-color:' + color + ';width: 15px;height: 15px;position: absolute;"></div>' +
+                            '<h1 id="' + message.id + '">' + Math.round(message.temp * 10)/10 + '</h1>' +
+                            '<h4>' + message.name + '</h4>' +
+                            '<span class="text-muted">'+ message.id + '</span>' +
+                            '</div>';
+                   var sensors = document.getElementById("sensors");
+                   sensors.innerHTML += template;
+                   lines[message.id] = new TimeSeries();
+                   smoothie.addTimeSeries(lines[message.id],{ strokeStyle:color, lineWidth:2 });
+                   lines[message.id].append(new Date().getTime(), message.temp);
+                }
+            }
+            
+            function random(min, max) {
+                return Math.floor(Math.random() * (max-min) + min)
+            }
+            
+            function debugtoggle() {
+                debug = !debug;
+                socket.emit('debug',debug);
+            }
+        </script>
+            
+        <title>Gidmon Brewing Monitor</title>
+    </head>
+    <body>
+        <h1>Gidmon Brewing Monitor</h1>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main">
+                    <div class="row placeholders" id="sensors">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main">
+                    <canvas id="chartcanvas" width="600" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <input type="submit" onclick="debugtoggle()" id="debugbox" value="Toggle debug"/>
+        <ul id='messages'>
+            <!--<li>Temp1: 68</li>
+            <li>Temp2: 68</li>
+            <li>Temp3: 68</li>-->
+        </ul>
+        
+        <script>
+            var smoothie = new SmoothieChart({minValue:0,maxValue:105,grid:{fillStyle:'#ffffff'}});     
+            smoothie.streamTo(document.getElementById("chartcanvas"), 3000 /*delay*/); 
+            
+        </script>
+    </body>
+    
+</html>
