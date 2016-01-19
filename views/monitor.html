@@ -1,69 +1,25 @@
 <html>
     <head>
+         <title>Gidmon Brewing Monitor</title>
         <script src='../socket.io.js'></script>
         <script src="../jquery.min.js"></script>
         <script type="text/javascript" src="../smoothie.js"></script>
         <link rel="stylesheet" href="../bootstrap/dist/css/bootstrap.min.css">
         <script src="../bootstrap/dist/js/bootstrap.min.js"></script>
-        
-        
-        <script>
-            var lines = [];
-            var debug = false;
-            var sensorMapping = [];
-            sensorMapping["28-0000072e90ed"] = "Demosensor";
-            var socket = io();
-            socket.on('welcome', function(data) {
-                //addMessage(data.message);
-
-                // Respond with a message including this clients' id sent from the server
-                socket.emit('i am client', {data: 'foo!', id: data.id});
-            });
-            socket.on('temp', function(data) {
-                addMessage(data);
-            });
-            socket.on('error', console.error.bind(console));
-            socket.on('message', console.log.bind(console));
-
-            function addMessage(message) {
-                if(!!document.getElementById(message.id)) {
-                    document.getElementById(message.id).innerText = Math.round(message.temp * 10)/10;
-                    lines[message.id].append(new Date().getTime(), message.temp);
-                } else {
-                   var color = 'rgb(' + random(256,0) + ', ' + random(256,0) + ', ' + random(256,0) + ')';
-                
-                   var template = '<div class="col-xs-6 col-sm-3 placeholder">' +
-                            '<div style="background-color:' + color + ';width: 15px;height: 15px;position: absolute;"></div>' +
-                            '<h1 id="' + message.id + '">' + Math.round(message.temp * 10)/10 + '</h1>' +
-                            '<h4>' + message.name + '</h4>' +
-                            '<span class="text-muted">'+ message.id + '</span>' +
-                            '</div>';
-                   var sensors = document.getElementById("sensors");
-                   sensors.innerHTML += template;
-                   lines[message.id] = new TimeSeries();
-                   smoothie.addTimeSeries(lines[message.id],{ strokeStyle:color, lineWidth:2 });
-                   lines[message.id].append(new Date().getTime(), message.temp);
-                }
-            }
-            
-            function random(min, max) {
-                return Math.floor(Math.random() * (max-min) + min)
-            }
-            
-            function debugtoggle() {
-                debug = !debug;
-                socket.emit('debug',debug);
-            }
-        </script>
-            
-        <title>Gidmon Brewing Monitor</title>
+        <script src="../angular/angular.js"></script>
     </head>
     <body>
         <h1>Gidmon Brewing Monitor</h1>
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main">
-                    <div class="row placeholders" id="sensors">
+                <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main" ng-app="sensorApp">
+                    <div class="row placeholders" ng-controller="sensorController">
+                        <div class="col-xs-6 col-sm-3 placeholder" ng-repeat="reading in readings">
+                            <div style="background-color:{{reading.color}};width: 15px;height: 15px;position: absolute;"></div>
+                            <h1 id="{{reading.id}}">{{reading.temp}}</h1>
+                            <h4>{{reading.name}}</h4>
+                            <span class="text-muted">{{reading.id}}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,18 +29,83 @@
                 </div>
             </div>
         </div>
-        <input type="submit" onclick="debugtoggle()" id="debugbox" value="Toggle debug"/>
-        <ul id='messages'>
-            <!--<li>Temp1: 68</li>
-            <li>Temp2: 68</li>
-            <li>Temp3: 68</li>-->
-        </ul>
+        <input type="submit" onclick="debugtoggle()" id="debugbox" value="Toggle debug"/>  
+       
+
+<script>
+    var app = angular.module('sensorApp', []);
+    var socket = io();
+    var lines = [];
+    var debug = false;
+    var smoothie = new SmoothieChart({minValue:0,maxValue:105,grid:{fillStyle:'#ffffff'}});     
+    smoothie.streamTo(document.getElementById("chartcanvas"), 3000 /*delay*/); 
+
+    app.factory('socket', ['$rootScope', function ($rootScope) {
+        var socket = io.connect();
+        console.log("socket created");
         
-        <script>
-            var smoothie = new SmoothieChart({minValue:0,maxValue:105,grid:{fillStyle:'#ffffff'}});     
-            smoothie.streamTo(document.getElementById("chartcanvas"), 3000 /*delay*/); 
-            
-        </script>
+        return {
+            on: function (eventName, callback) {
+                function wrapper() {
+                    var args = arguments;
+                    $rootScope.$apply(function () {
+                        callback.apply(socket, args);
+                    });
+                }   
+                socket.on(eventName, wrapper);
+        
+                return function () {
+                    socket.removeListener(eventName, wrapper);
+                };
+            },
+            emit: function (eventName, data, callback) {
+                socket.emit(eventName, data, function () {
+                    var args = arguments;
+                    $rootScope.$apply(function () {
+                        if(callback) {
+                            callback.apply(socket, args);
+                        }
+                    });
+                });
+            }
+        };
+    }]);
+
+    app.controller('sensorController', function($scope, socket) {
+        socket.on("welcome", function(data){
+            console.log("user data: " + JSON.stringify(data));  
+            socket.emit('i am client', {data: 'pong!', id: data.id});
+            // socket.emit('debug',true);
+            var readings = new Object();
+            socket.on("temp", function(temp) {
+                temp.temp = Math.round(temp.temp * 10)/10
+                if(readings[temp.id] == null) {
+                    var color = 'rgb(' + random(256,0) + ', ' + random(256,0) + ', ' + random(256,0) + ')';
+                    temp.color = color;
+                    readings[temp.id] = temp;
+                    
+                    lines[temp.id] = new TimeSeries();
+                    smoothie.addTimeSeries(lines[temp.id],{ strokeStyle:color, lineWidth:2 });
+                    lines[temp.id].append(new Date().getTime(), temp.temp);
+                } else {
+                    temp.color = readings[temp.id].color;
+                    readings[temp.id] = temp;
+                    lines[temp.id].append(new Date().getTime(), temp.temp);
+                }
+                $scope.readings = readings;
+            });
+        });
+    });
+
+    function random(min, max) {
+        return Math.floor(Math.random() * (max-min) + min)
+    }
+
+    function debugtoggle() {
+        debug = !debug;
+        socket.emit('debug',debug);
+    }
+
+</script>
     </body>
-    
 </html>
