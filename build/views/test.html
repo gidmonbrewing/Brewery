@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <title>Alternative page</title>
+        <script src='../socket.io.js'></script>
+        <script src="../jquery.min.js"></script>
+        <script type="text/javascript" src="../smoothie.js"></script>
+        <link rel="stylesheet" href="../bootstrap/dist/css/bootstrap.min.css">
+        <script src="../bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="../angular/angular.js"></script>
+    </head>
+    <body>
+       
+<!--<div ng-app="myApp" ng-controller="namesCtrl"> 
+
+<table>
+  <tr ng-repeat="x in names">
+    <td>{{ x.id }}</td>
+    <td>{{ x.temp }}</td>
+  </tr>
+</table>
+
+</div>
+
+</div>-->
+<div ng-app="myApp">
+<div ng-controller="mainController">
+
+<p>recievedTroughSocket: {{recievedTroughSocket}}</p>
+<button ng-click="sendWithSocket('hello server')">send something</button>
+</div>
+</div>
+<script>
+var app = angular.module('myApp', []);
+var socket = io();
+var names = [];
+var app = angular.module('myApp', []);
+app.factory('socket', ['$rootScope', function ($rootScope) {
+var socket = io.connect();
+console.log("socket created");
+ 
+return {
+on: function (eventName, callback) {
+function wrapper() {
+var args = arguments;
+$rootScope.$apply(function () {
+callback.apply(socket, args);
+});
+}
+ 
+socket.on(eventName, wrapper);
+ 
+return function () {
+socket.removeListener(eventName, wrapper);
+};
+},
+ 
+emit: function (eventName, data, callback) {
+socket.emit(eventName, data, function () {
+var args = arguments;
+$rootScope.$apply(function () {
+if(callback) {
+callback.apply(socket, args);
+}
+});
+});
+}
+};
+}]);
+
+app.controller('mainController', function($scope, socket) {
+$scope.recievedTroughSocket = "still waiting for data...";
+// $scope.sendWithSocket = function(msg){
+
+socket.on("welcome", function(data){
+console.log("user data: " + JSON.stringify(data));
+ socket.emit('i am client', {data: 'asdf!', id: data.id});
+ socket.emit('debug',true);
+ socket.on("temp", function(temp) {
+     console.log(temp);
+    $scope.recievedTroughSocket = temp.id; 
+ });
+});
+// }
+});
+
+</script>
+    </body>
+</html>
