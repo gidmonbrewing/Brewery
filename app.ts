@@ -1,45 +1,22 @@
+"use strict";
 import express = require('express');
+import Heater = require('./heater');
+import Mash = require('./mash');
+import Brewstatus = require('./brewstatus');
 var sensor = require('ds18x20');
-var gpio = require('pi-gpio');
 var app = express();
 var server = app.listen(8334, function(){
     console.log("Lyssnar");
 });
 
 var io = require('socket.io').listen(server);
-
 app.use(express.static('scripts'));
 app.use(express.static('node_modules'))
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
-gpio.close(22, function(er){
-console.log("close");
-console.log(er);
-
-op();
-
-});
-
-function op(){
-	gpio.open(22, "output", function(err){
-	console.log("open");
-	console.log(err);
-	gpio.write(22, 1, function(err){
-	console.log("write" + err);	
-	});
-	});
-}
-
-function write(){
-	gpio.write(22, false, function(err){
-	if(err)
-		console.log(err);
-	});
-	console.log('gpio write')
-};
-
+var heater = new Heater();
 
 var isLoaded = sensor.isDriverLoaded();
 console.log(isLoaded);
@@ -58,6 +35,11 @@ sensorMapping["28-000007308286"] = "HLT (Ut)";
 sensorMapping["28-0000072fbb77"] = "MSK (In)";
 sensorMapping["28-0000072e1eae"] = "MSK (Ut)";
 
+var tempSensors = [];
+tempSensors["HLT(UT)"] = "28-000007308286";
+tempSensors["MSK(IN)"] = "28-0000072fbb77";
+tempSensors["MSK(UT)"] = "28-0000072e1eae";
+
 var devices;
 try {
     devices = sensor.list();
@@ -65,39 +47,53 @@ try {
     console.log(ex);
 }
 var debug = false;
-var heatOn = false;
-var targetTemp = 30;
+var mash = new Mash(60, 60);
+
+function Brew() {
+    try {
+        
+    
+    var mskIn = sensor.get(tempSensors["MSK(IN)"]);
+    var mskUt = sensor.get(tempSensors["MSK(UT)"]);
+    var hltUt = sensor.get(tempSensors["HLT(UT)"]);
+    
+    var setHeater = mash.HeatOn(hltUt, mskUt, mskIn);
+    if(setHeater)
+        heater.On();
+    else
+        heater.Off();
+        
+    var status = new Brewstatus(hltUt, mskUt, mskIn, mash.TimeLeft(), mash.MashTemp);
+    io.emit('status', status);
+    setTimeout(Brew, 1000);
+    }
+    catch(err)
+    {
+        console.log(err);
+    }
+}
+
 
 // Send current time to all connected clients
 function sendTemp() {
     try {
     for(var i = 0; i<devices.length;i++){
-      io.emit('temp', { id: devices[i], name: sensorMapping[devices[i]], temp: sensor.get(devices[i])});  
+       io.emit('temp', { id: devices[i], name: sensorMapping[devices[i]], temp: sensor.get(devices[i])});  
     
-        if(sensorMapping[devices[i]] == "MSK (In)")
+       if(sensorMapping[devices[i]] == "MSK (In)")
 	   {
-		console.log(heatOn);
+		console.log(heater.Status);
 		var mskintemp = sensor.get(devices[i]);
-		if(!heatOn)
+		if(!heater.Status)
 		{
-			gpio.write(22, 0, function(err){
-				if(err)
-					console.log(err);
-				});
-			console.log("heatOn = true");
-			heatOn = true;
-			console.log(heatOn);
+			heater.On();
+			console.log(heater.Status);
 		}
-		else if(heatOn)
+		else if(heater.Status)
 		{
-			gpio.write(22, 1, function(err){
-			console.log(err);
-			});
-			heatOn = false;
+			heater.Off();
 		}
 	}    
-
-
     }
     } catch(ex) {
         console.log(ex);
@@ -114,7 +110,10 @@ function toggleDebug(val) {
     debug = val;
 }
 
-setInterval(sendTemp, 1000);
+function StartBrew() {
+    console.log("StartBrewing");
+    Brew();
+}
 
 // Emit welcome message on connection
 io.on('connection', function(socket) {
@@ -122,14 +121,13 @@ io.on('connection', function(socket) {
     socket.emit('welcome', { message: 'Welcome!', id: socket.id });
     socket.on('i am client', console.log);
     socket.on('debug', toggleDebug);
+    socket.on('StartBrew', StartBrew);
 });
 
 app.get('/', function (req, res){
             //res.send('<h1>'+varde+'</h1>')
             res.render('monitor');
 });
-
-
 
 
 export = app;

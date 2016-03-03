@@ -30,6 +30,7 @@
             </div>
         </div>
         <input type="submit" onclick="debugtoggle()" id="debugbox" value="Toggle debug"/>  
+        <input type="submit" onclick="StartBrew();" id="debugbox" value="Start Brewing!!"/>  
        
 
 <script>
@@ -77,6 +78,16 @@
             socket.emit('i am client', {data: 'pong!', id: data.id});
             // socket.emit('debug',true);
             var readings = new Object();
+            
+            socket.on("status", function(status) {
+                readings["hltUt"] = {id: "hltUt", temp: status._hltUt, name: "Hlt (Ut)"};
+                readings["mskUt"] = {id: "mskUt", temp: status._mskUt, name: "Msk (Ut)"};
+                readings["mskIn"] = {id: "mskIn", temp: status._mskIn, name: "Msk (In)"};
+                readings["timeLeft"] = {id: "timeLeft", temp: status._timelLeft/60000, name: "Time Left"};
+                readings["targetTemperature"] = {id: "targetTemperature", temp: status._targetTemperature, name: "Target temperature"};
+                $scope.readings = readings;
+            });
+            
             socket.on("temp", function(temp) {
                 temp.temp = Math.round(temp.temp * 10)/10
                 if(readings[temp.id] == null) {
@@ -99,6 +110,10 @@
 
     function random(min, max) {
         return Math.floor(Math.random() * (max-min) + min)
+    }
+
+    function StartBrew() {
+        socket.emit("StartBrew");
     }
 
     function debugtoggle() {
