@@ -43,7 +43,7 @@ class Mash {
                 this.StartTime = Date.now();
             return false;    
         }
-        if(hltUt > this.MashTemp + (mskIn - mskUt))
+        if(hltUt > this.MashTemp + Math.abs(mskIn - mskUt))
             return false;
                     
         return true;
