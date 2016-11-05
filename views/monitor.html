@@ -3,7 +3,6 @@
          <title>Gidmon Brewing Monitor</title>
         <script src='../socket.io.js'></script>
         <script src="../jquery.min.js"></script>
-        <script type="text/javascript" src="../smoothie.js"></script>
         <link rel="stylesheet" href="../bootstrap/dist/css/bootstrap.min.css">
         <script src="../bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="../angular/angular.js"></script>
@@ -27,11 +26,6 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main">
-                    <canvas id="chartcanvas" width="600" height="300"></canvas>
-                </div>
-            </div>
         </div>
         <input type="submit" onclick="debugtoggle();" id="debugbox" value="Toggle debug"/>  
         <input type="submit" onclick="StartBrew();" id="debugbox" value="Start Brewing!!"/>  
@@ -39,10 +33,7 @@
 <script>
     var app = angular.module('sensorApp', []);
     var socket = io();
-    var lines = [];
     var debug = false;
-    var smoothie = new SmoothieChart({minValue:0,maxValue:105,grid:{fillStyle:'#ffffff'}});     
-    smoothie.streamTo(document.getElementById("chartcanvas"), 3000 /*delay*/); 
 
     app.factory('socket', ['$rootScope', function ($rootScope) {
         var socket = io.connect();
@@ -97,14 +88,9 @@
                     var color = 'rgb(' + random(256,0) + ', ' + random(256,0) + ', ' + random(256,0) + ')';
                     temp.color = color;
                     readings[temp.id] = temp;
-                    
-                    lines[temp.id] = new TimeSeries();
-                    smoothie.addTimeSeries(lines[temp.id],{ strokeStyle:color, lineWidth:2 });
-                    lines[temp.id].append(new Date().getTime(), temp.temp);
                 } else {
                     temp.color = readings[temp.id].color;
                     readings[temp.id] = temp;
-                    lines[temp.id].append(new Date().getTime(), temp.temp);
                 }
                 $scope.readings = readings;
             });
