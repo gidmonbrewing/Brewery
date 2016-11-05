@@ -108,11 +108,17 @@ function sendTemp() {
 
 function toggleDebug(val) {
     debug = val;
+    console.log("togle debug to: " + val);
 }
 
 function StartBrew() {
     console.log("StartBrewing");
     Brew();
+}
+
+function SetNewMashTemp(val) {
+    console.log("SetNewMashTemp to: " + val);
+    mash.MashTemp = val;
 }
 
 // Emit welcome message on connection
@@ -122,6 +128,7 @@ io.on('connection', function(socket) {
     socket.on('i am client', console.log);
     socket.on('debug', toggleDebug);
     socket.on('StartBrew', StartBrew);
+    socket.on('SetNewMashTemp', SetNewMashTemp);
 });
 
 app.get('/', function (req, res){
