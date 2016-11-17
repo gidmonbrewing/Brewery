@@ -5,7 +5,8 @@
 class Mash {
     
     private _tolerance: number;
-    
+    private _heatTolerance: number;
+
     private _StartTime : number;
     public get StartTime() : number {
         return this._StartTime;
@@ -32,18 +33,27 @@ class Mash {
     
     constructor(mashTime: number, mashTemp: number) {
         this._tolerance = 0.2;
+        this._heatTolerance = 1.63;
         this.MashTemp = mashTemp;
         this.MashTime = mashTime * 60000;
         this._StartTime = -1;
+    }
+
+    public ResetHeatTolerance() {
+        this._heatTolerance = 1.63;
     }
     
     public HeatOn(hltUt: number, mskUt: number, mskIn: number) {
         if(mskUt > this.MashTemp - this._tolerance && mskIn > this.MashTemp - this._tolerance) {
             if(this._StartTime == -1)
+            {
                 this.StartTime = Date.now();
+                this._heatTolerance = 0;
+            }
             return false;    
         }
-        if(hltUt > this.MashTemp + Math.abs(mskIn - mskUt))
+        console.log('hltUt:' + hltUt + ' compare: ' + (this.MashTemp + Math.min((this.MashTemp - mskUt), Math.abs(mskIn - mskUt)) + this._heatTolerance));
+        if(hltUt > (this.MashTemp + Math.min((this.MashTemp - mskUt), Math.abs(mskIn - mskUt)) + this._heatTolerance))
             return false;
                     
         return true;

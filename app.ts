@@ -47,7 +47,7 @@ try {
     console.log(ex);
 }
 var debug = false;
-var mash = new Mash(60, 60);
+var mash = new Mash(60, 65);
 
 function Brew() {
     try {
@@ -118,7 +118,8 @@ function StartBrew() {
 
 function SetNewMashTemp(val) {
     console.log("SetNewMashTemp to: " + val);
-    mash.MashTemp = val;
+    mash.MashTemp = parseInt(val);
+    mash.ResetHeatTolerance();
 }
 
 // Emit welcome message on connection
