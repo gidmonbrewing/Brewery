@@ -35,22 +35,13 @@ class Mash {
         this._MashTemp = v;
     }
 
-    
-    private _IsMashing : boolean;
-    public get IsMashing() : boolean {
-        return this._IsMashing;
-    }
-    public set IsMashing(v : boolean) {
-        this._IsMashing = v;
-    }
-    
     constructor(mashTime: number, mashTemp: number) {
         this._tolerance = 0.2;
         this._heatTolerance = 1.63;
         this.MashTemp = mashTemp;
         this.MashTime = mashTime * 60000;
         this._StartTime = -1;
-        this._IsMashing = false;
+        this._isMashing = false;
     }
 
     public ResetHeatTolerance() {
@@ -59,7 +50,7 @@ class Mash {
     
     public HeatOn(hltUt: number, mskUt: number, mskIn: number) {
         if(mskUt > this.MashTemp - this._tolerance && mskIn > this.MashTemp - this._tolerance) {
-            if(this._IsMashing)
+            if(this._isMashing)
             {
                 this._heatTolerance = 0;
             }
@@ -77,14 +68,14 @@ class Mash {
     }
     
     public TimeLeft() {
-        if(this._IsMashing)
+        if(this._isMashing)
             return (Date.now() - this.StartTime) - this.MashTime;
         else
             return 0;
     }
 
     public StartMash(){
-        this._IsMashing = true;
+        this._isMashing = true;
         this.StartTime = Date.now();
     }
 }
