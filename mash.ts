@@ -6,6 +6,10 @@ class Mash {
     
     private _tolerance: number;
     private _heatTolerance: number;
+    private _isMashing: boolean;
+    public get IsMashing() : boolean {
+        return this._isMashing;
+    }
 
     private _StartTime : number;
     public get StartTime() : number {
