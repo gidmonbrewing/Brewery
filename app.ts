@@ -3,6 +3,7 @@ import express = require('express');
 import Heater = require('./heater');
 import Mash = require('./mash');
 import Brewstatus = require('./brewstatus');
+import Sparge = require('./sparge');
 var sensor = require('ds18x20');
 var app = express();
 var server = app.listen(8334, function(){
@@ -47,22 +48,43 @@ try {
     console.log(ex);
 }
 var mash = new Mash(60, 65);
+var sparge = new Sparge(20,75);
 
 function Brew() {
     try {
+<<<<<<< HEAD
     var mskIn = sensor.get(tempSensors["MSK(IN)"]);
     var mskUt = sensor.get(tempSensors["MSK(UT)"]);
     var hltUt = sensor.get(tempSensors["HLT(UT)"]);
+=======
+        var mskIn = sensor.get(tempSensors["MSK(IN)"]);
+        var mskUt = sensor.get(tempSensors["MSK(UT)"]);
+        var hltUt = sensor.get(tempSensors["HLT(UT)"]);
+        if(mash.IsMashing) {
+            var setHeater = mash.HeatOn(hltUt, mskUt, mskIn);
+            if(setHeater)
+                heater.On();
+            else
+                heater.Off();
+        } else if(sparge.IsInPrePhase) {
+            var setHeater = sparge.HeatOn(hltUt);
+            if(setHeater)
+                heater.On();
+            else
+                heater.Off();
+        } else if(sparge.IsRunning) {
+            heater.Off();
+            sparge.CheckStatus();
+        }
+>>>>>>> 649c01bae3b2406cb25812df3080fe5549f0b8b5
     
-    var setHeater = mash.HeatOn(hltUt, mskUt, mskIn);
-    if(setHeater)
-        heater.On();
-    else
-        heater.Off();
         
-    var status = new Brewstatus(hltUt, mskUt, mskIn, mash.TimeLeft(), mash.MashTemp);
-    io.emit('status', status);
-    setTimeout(Brew, 1000);
+            
+        
+            
+        var status = new Brewstatus(hltUt, mskUt, mskIn, mash.TimeLeft(), mash.MashTemp);
+        io.emit('status', status);
+        setTimeout(Brew, 1000);
     }
     catch(err)
     {
