@@ -27,12 +27,12 @@ class Brewstatus {
         this._mskIn = v;
     }
     
-    private _timeLeft : number;
-    public get timeLeft() : number {
-        return this._timeLeft;
+    private _mashTimeLeft : number;
+    public get MashTimeLeft() : number {
+        return this._mashTimeLeft;
     }
-    public set timeLeft(v : number) {
-        this._timeLeft = v;
+    public set MashTimeLeft(v : number) {
+        this._mashTimeLeft = v;
     }
     
     private _targetTemperature : number;
@@ -43,11 +43,11 @@ class Brewstatus {
         this._targetTemperature = v;
     }
     
-    constructor(hltUt: number, mskUt: number, mskIn: number, timeLeft: number, targetTemperature: number) {
+    constructor(hltUt: number, mskUt: number, mskIn: number, mashTimeLeft: number, targetTemperature: number) {
        this._hltUt = hltUt;
        this._mskUt = mskUt;
        this.mskIn = mskIn;
-       this.timeLeft = timeLeft;
+       this._mashTimeLeft = mashTimeLeft;
        this.targetTemperature = targetTemperature;
     }
 }

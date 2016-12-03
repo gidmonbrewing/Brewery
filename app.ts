@@ -46,13 +46,10 @@ try {
 } catch(ex) {
     console.log(ex);
 }
-var debug = false;
 var mash = new Mash(60, 65);
 
 function Brew() {
     try {
-        
-    
     var mskIn = sensor.get(tempSensors["MSK(IN)"]);
     var mskUt = sensor.get(tempSensors["MSK(UT)"]);
     var hltUt = sensor.get(tempSensors["HLT(UT)"]);
@@ -73,7 +70,6 @@ function Brew() {
     }
 }
 
-
 // Send current time to all connected clients
 function sendTemp() {
     try {
@@ -82,33 +78,22 @@ function sendTemp() {
     
        if(sensorMapping[devices[i]] == "MSK (In)")
 	   {
-		console.log(heater.Status);
-		var mskintemp = sensor.get(devices[i]);
-		if(!heater.Status)
-		{
-			heater.On();
-			console.log(heater.Status);
-		}
-		else if(heater.Status)
-		{
-			heater.Off();
-		}
-	}    
+	        console.log(heater.Status);
+            var mskintemp = sensor.get(devices[i]);
+            if(!heater.Status)
+            {
+                heater.On();
+                console.log(heater.Status);
+            }
+            else if(heater.Status)
+            {
+                heater.Off();
+            }
+	    }    
     }
     } catch(ex) {
-        console.log(ex);
-        
+        console.log(ex);   
     }
-    if(debug) {
-        io.emit('temp', { id:"28-0000072e90e1", name: "demo1", temp: 40 + Math.random()*10});
-        io.emit('temp', { id:"28-0000072e90e2", name: "demo2", temp: 30 + Math.random()*20});
-    } 
-    //io.emit('temp', { temp: sensor.get(devices)});
-}
-
-function toggleDebug(val) {
-    debug = val;
-    console.log("togle debug to: " + val);
 }
 
 function StartBrew() {
@@ -127,15 +112,12 @@ io.on('connection', function(socket) {
     // Use socket to communicate with this particular client only, sending it it's own id
     socket.emit('welcome', { message: 'Welcome!', id: socket.id });
     socket.on('i am client', console.log);
-    socket.on('debug', toggleDebug);
     socket.on('StartBrew', StartBrew);
     socket.on('SetNewMashTemp', SetNewMashTemp);
 });
 
 app.get('/', function (req, res){
-            //res.send('<h1>'+varde+'</h1>')
             res.render('monitor');
 });
-
 
 export = app;
