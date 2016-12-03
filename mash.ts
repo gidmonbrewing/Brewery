@@ -49,6 +49,10 @@ class Mash {
     }
     
     public HeatOn(hltUt: number, mskUt: number, mskIn: number) {
+        if(this.IsDone())
+        {
+            this._isMashing = false;
+        }
         if(mskUt > this.MashTemp - this._tolerance && mskIn > this.MashTemp - this._tolerance) {
             if(this._isMashing)
             {
