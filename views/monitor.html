@@ -39,6 +39,11 @@
                         <h1 id="mashTimeLeft">{{mashTimeLeft}}</h1>
                         <h4><input type="button" id="startMash" value="Start Mash" onclick="StartMash();" /></h4>
                     </div>
+                    <div class="col-xs-6 col-sm-3 placeholder">
+                        
+                        <h4><input type="button" id="startSpargePrePhase" value="Start pre sparge" onclick="StartSpargePrePhase();" /></h4>
+                        <h4><input type="button" id="spartSParge" value="Start sparge" onclick="StartSparge();" /></h4>
+                    </div>
                 </div>
             </div>
         </div>
@@ -123,6 +128,14 @@
     
     function StartMash() {
         socket.emit('StartMash');
+    }
+
+    function StartSpargePrePhase() {
+        socket.emit('StartSpargePrePhase');
+    }
+
+    function StartSparge() {
+        socket.emit('StartSparge');
     }
 
 </script>

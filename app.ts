@@ -119,6 +119,18 @@ function SetNewMashTemp(val) {
     mash.ResetHeatTolerance();
 }
 
+function StartMash() {
+    mash.StartMash();
+}
+
+function StartSpargePrePhase() {
+    sparge.StartPrePhase();
+}
+
+function StartSparge() {
+    sparge.Start();
+}
+
 // Emit welcome message on connection
 io.on('connection', function(socket) {
     // Use socket to communicate with this particular client only, sending it it's own id
@@ -126,6 +138,9 @@ io.on('connection', function(socket) {
     socket.on('i am client', console.log);
     socket.on('StartBrew', StartBrew);
     socket.on('SetNewMashTemp', SetNewMashTemp);
+    socket.on('StartMash', StartMash);
+    socket.on('StartSpargePrePhase', StartSpargePrePhase);
+    socket.on('StartSparge', StartSparge);
 });
 
 app.get('/', function (req, res){

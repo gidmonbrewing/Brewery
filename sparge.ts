@@ -23,10 +23,12 @@ class Sparge {
     }
 
     public StartPrePhase() {
+        console.log("Starting sparge pre phase!");
         this._isInPrePhase = true;
     }
 
     public Start() {
+        console.log("Starting sparge!");
         this._isInPrePhase = false;
         this._isRunning = true;
         this._startTime = Date.now();
