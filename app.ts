@@ -52,11 +52,6 @@ var sparge = new Sparge(20,75);
 
 function Brew() {
     try {
-<<<<<<< HEAD
-    var mskIn = sensor.get(tempSensors["MSK(IN)"]);
-    var mskUt = sensor.get(tempSensors["MSK(UT)"]);
-    var hltUt = sensor.get(tempSensors["HLT(UT)"]);
-=======
         var mskIn = sensor.get(tempSensors["MSK(IN)"]);
         var mskUt = sensor.get(tempSensors["MSK(UT)"]);
         var hltUt = sensor.get(tempSensors["HLT(UT)"]);
@@ -76,12 +71,7 @@ function Brew() {
             heater.Off();
             sparge.CheckStatus();
         }
->>>>>>> 649c01bae3b2406cb25812df3080fe5549f0b8b5
-    
-        
-            
-        
-            
+           
         var status = new Brewstatus(hltUt, mskUt, mskIn, mash.TimeLeft(), mash.MashTemp);
         io.emit('status', status);
         setTimeout(Brew, 1000);
