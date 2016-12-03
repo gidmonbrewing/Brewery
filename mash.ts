@@ -73,7 +73,6 @@ class Mash {
     }
     
     public TimeLeft() {
-        console.log('time left')
         if(this._isMashing)
             return this.MashTime - (Date.now() - this.StartTime);
         else
