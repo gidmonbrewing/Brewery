@@ -51,6 +51,7 @@ class Mash {
     public HeatOn(hltUt: number, mskUt: number, mskIn: number) {
         if(this.IsDone())
         {
+            console.log('Mashing is done');
             this._isMashing = false;
         }
         if(mskUt > this.MashTemp - this._tolerance && mskIn > this.MashTemp - this._tolerance) {
@@ -72,13 +73,15 @@ class Mash {
     }
     
     public TimeLeft() {
+        console.log('time left')
         if(this._isMashing)
-            return (Date.now() - this.StartTime) - this.MashTime;
+            return this.MashTime - (Date.now() - this.StartTime);
         else
             return 0;
     }
 
     public StartMash(){
+        console.log('Start mashing');
         this._isMashing = true;
         this.StartTime = Date.now();
     }

@@ -7,21 +7,17 @@
         <script src="../bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="../angular/angular.js"></script>
     </head>
-    <body>
+    <body ng-app="sensorApp">
         <h1>Gidmon Brewing Monitor</h1>
-        <div class="container-fluid" ng-app="sensorApp">
+        <div class="container-fluid" ng-controller="sensorController">
             <div class="row">
                 <div class="col-sm-12 col-sm-offset-3 col-md-10 col-md-offset-1 main">
-                    <div class="row placeholders" ng-controller="sensorController">
+                    <div class="row placeholders">
                         <div class="col-xs-6 col-sm-3 placeholder" ng-repeat="reading in readings">
                             <div style="background-color:{{reading.color}};width: 15px;height: 15px;position: absolute;"></div>
                             <h1 id="{{reading.id}}">{{reading.temp}}</h1>
                             <h4>{{reading.name}}</h4>
                             <span class="text-muted">{{reading.id}}</span>
-                        </div>
-                        <div class="col-xs-6 col-sm-3 placeholder">
-                            <h1><input type="number" id="newTargetTemp" name="newTargetTemp" value="60"/></h1>
-                            <h4><input type="button" id="setNewTargetTemp" value="Set new mash temp" onclick="SetNewMashTemp();" /></h4>
                         </div>
                     </div>
                 </div>
@@ -32,15 +28,15 @@
                         <h4><input type="submit" onclick="StartBrew();" id="debugbox" value="Start Brewing!!"/></h4>
                     </div>
                     <div class="col-xs-6 col-sm-3 placeholder">
-                        <h1><input type="number" id="newTargetTemp" name="newTargetTemp" value="60"/></h1>
+                        <h1><input class="col-xs-12" type="number" id="newTargetTemp" name="newTargetTemp" value="60"/></h1>
                         <h4><input type="button" id="setNewTargetTemp" value="Set new mash temp" onclick="SetNewMashTemp();" /></h4>
                     </div>
                     <div class="col-xs-6 col-sm-3 placeholder">
-                        <h1 id="mashTimeLeft">{{mashTimeLeft}}</h1>
+                        <h1 id="mashTimeLeft">{{mashTimeLeft.getMinutes()}}:{{mashTimeLeft.getSeconds()}}</h1>
+                        <h4>Mashtimeleft</h4>
                         <h4><input type="button" id="startMash" value="Start Mash" onclick="StartMash();" /></h4>
                     </div>
                     <div class="col-xs-6 col-sm-3 placeholder">
-                        
                         <h4><input type="button" id="startSpargePrePhase" value="Start pre sparge" onclick="StartSpargePrePhase();" /></h4>
                         <h4><input type="button" id="spartSParge" value="Start sparge" onclick="StartSparge();" /></h4>
                     </div>
@@ -89,14 +85,14 @@
             console.log("user data: " + JSON.stringify(data));  
             socket.emit('i am client', {data: 'pong!', id: data.id});
             var readings = new Object();
-            
+            $scope.mashTimeLeft = 60;
             socket.on("status", function(status) {
                 readings["hltUt"] = {id: "hltUt", temp: status._hltUt, name: "Hlt (Ut)"};
                 readings["mskUt"] = {id: "mskUt", temp: status._mskUt, name: "Msk (Ut)"};
                 readings["mskIn"] = {id: "mskIn", temp: status._mskIn, name: "Msk (In)"};
                 readings["targetTemperature"] = {id: "targetTemperature", temp: status._targetTemperature, name: "Target temperature"};
                 $scope.readings = readings;
-                $scope.mashTimeLeft = status._timeLeft;
+                $scope.mashTimeLeft = new Date(status._mashTimeLeft);
             });
             
             socket.on("temp", function(temp) {
